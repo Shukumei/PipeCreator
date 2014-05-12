@@ -1,5 +1,4 @@
 #include "BezierPath.h"
-#include "Matrix4.h"
 
 #include <iostream>
 #include <fstream>
@@ -21,101 +20,43 @@ struct Vertex {
 	float normal[3];
 };
 
-void circleVerts(int approx, float radius, vector<Vector4>* storeVec)
+void createTubeCircle(loadedPoint current, vector<Vertex>* finalPoints)
 {
-	const double angle((M_PI * 2.0) / (double)approx);
-	int idx;
-	double x(0.0), y(0.0), z(0.0);
-	double original_radius = radius;
-
-	double firstX = radius;
-	double firstY = 0.0;
-
-	for (idx = 0; idx<approx; idx++)
-	{
-		double cosAngle = cos(idx*angle);
-		double sinAngle = sin(idx*angle);
-
-		x = radius*cosAngle;
-		y = radius*sinAngle;
-
-		storeVec->push_back(Vector4(x, y, z, 1.0));
-	}
-	//duplicating the first vector for textures
-	storeVec->push_back(Vector4(firstX, firstY, 0.0, 1.0));
-}
-
-void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoints, vector<Vertex>* finalPoints)
-{
-	Vector4 circleNormal(0.0, 0.0, -1.0);
-	float cosine;
-	float sine;
-	float t;
-	Vector4 rotationAxis;
-	Matrix4 rotationMat;
-	Matrix4 translationMat;
-	//float fillArray[4][4];
-
-	//calculate new normal for each point
-	Vector4 normal = next - current;
-
-	normal.normalize();
-
-	float angle = acos(circleNormal.dot(normal));
-	cosine = circleNormal.dot(normal);
-	sine = sqrt(1 - cosine*cosine);
-	t = 1 - cosine;
-	rotationAxis.set(circleNormal.x(), circleNormal.y(), circleNormal.z());
-	rotationAxis.cross(normal);
-	rotationAxis.normalize();
-
-	/*fillArray[0][0] = t*rotationAxis.x()*rotationAxis.x() + cosine;
-	fillArray[0][1] = t*rotationAxis.x()*rotationAxis.y() - rotationAxis.z()*sine;
-	fillArray[0][2] = t*rotationAxis.x()*rotationAxis.z() + rotationAxis.y()*sine;
-	fillArray[0][3] = p2.x();
-
-	fillArray[1][0] = t*rotationAxis.x()*rotationAxis.y() + rotationAxis.z()*sine;
-	fillArray[1][1] = t*rotationAxis.y()*rotationAxis.y() + cosine;
-	fillArray[1][2] = t*rotationAxis.y()*rotationAxis.z() - rotationAxis.x()*sine;
-	fillArray[1][3] = p2.y();
-
-	fillArray[2][0] = t*rotationAxis.x()*rotationAxis.z() - rotationAxis.y()*sine;
-	fillArray[2][1] = t*rotationAxis.y()*rotationAxis.z() + rotationAxis.x()*sine;
-	fillArray[2][2] = t*rotationAxis.z()*rotationAxis.z() + cosine;
-	fillArray[2][3] = p2.z();
-
-	fillArray[3][0] = 0.0;
-	fillArray[3][1] = 0.0;
-	fillArray[3][2] = 0.0;
-	fillArray[3][3] = 1.0;
-
-	transformMat = Matrix4(fillArray);*/
-	//Matrix4 compare;
-
-	rotationMat = Matrix4::rotate(rotationAxis, angle);
-	translationMat = Matrix4::translate(current);
-
-	Vector4 preResult;
-	Vector4 result;
-	Vector4 subtract;
-	Vertex resVertex;
+	float angleInc = (M_PI * 2.0) / NUMPOINTSINCIRCLE;
 
 	int round = RADIUS / 15;
 	if (round < 1.0)
 	{
 		round = 1;
 	}
-	float texInc = ((float) round) / (circlePoints->size()-1.0);
-	for (int i = 0; i < circlePoints->size(); i++)
-	{
-		preResult = rotationMat * (*circlePoints)[i];
-		result = translationMat * preResult;
-		resVertex.point[0] = result.x();
-		resVertex.point[1] = result.y();
-		resVertex.point[2] = result.z();
+	float texInc = ((float) round) / (float) NUMPOINTSINCIRCLE;
 
-		subtract.set(current.x(), current.y(), current.z());
-		subtract.subtract(result);
+	Vertex resVertex;
+	Vector4 pointPosition;
+	Vector4 subtract;
+
+	for (int i = 0; i < (NUMPOINTSINCIRCLE + 1); i++)
+	{
+		float rotAngle = angleInc * i;
+
+		if (i == NUMPOINTSINCIRCLE)
+		{
+			rotAngle = 0.0;
+		}
+
+		Matrix4 M = Matrix4::rotate(current.tangent, rotAngle);
+		Vector4 dir = M * current.normal;
+		dir.normalize();
+
+		pointPosition.set(current.position.x(), current.position.y(), current.position.z());
+		pointPosition.add(dir*RADIUS);
+
+		resVertex.point[0] = pointPosition.x();
+		resVertex.point[1] = pointPosition.y();
+		resVertex.point[2] = pointPosition.z();
+
+		subtract.set(current.position.x(), current.position.y(), current.position.z());
+		subtract.subtract(pointPosition);
 		subtract.normalize();
 
 		resVertex.normal[0] = subtract.x();
@@ -125,6 +66,9 @@ void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoin
 		//do texture coords here
 		resVertex.texCoord[0] = (float)i * texInc;
 		resVertex.texCoord[1] = 0.0f;
+
+		//using the loadedPoint tangent, you could set the vertex's tangent here
+
 
 		finalPoints->push_back(resVertex);
 	}
@@ -141,8 +85,8 @@ void quadToTriangle(FILE* myFile, int v0Index, int v1Index, int v2Index, int v3I
 int main() {
 
 	vector<Vector4>* startTrackPoints = new vector<Vector4>();
-	vector<Vector4>* finishedPathPoints = new vector<Vector4>();
-	vector<Vector4>* pathPointsForCircles = new vector<Vector4>();
+	vector<loadedPoint>* finishedPathPoints = new vector<loadedPoint>();
+	vector<loadedPoint>* pathPointsForCircles = new vector<loadedPoint>();
 
 	//add points for track
 
@@ -206,18 +150,18 @@ int main() {
 
 
 	//create obj file from points
-	vector<Vector4>* circleVec = new vector<Vector4>();
-	circleVerts(NUMPOINTSINCIRCLE, RADIUS, circleVec);
 
 	vector<Vertex>* tubeVertices = new vector<Vertex>();
 
 	for (int i = 0; i < pathPointsForCircles->size() - 1; i++)
 	{
-		createTubeCircle((*pathPointsForCircles)[i], (*pathPointsForCircles)[i + 1], circleVec, tubeVertices);
+		createTubeCircle((*pathPointsForCircles)[i], tubeVertices);
 	}
 
+	int totalPointsPerCircle = NUMPOINTSINCIRCLE + 1;
+
 	Vertex repeatPoint;
-	for (int t = 0; t < circleVec->size(); t++){
+	for (int t = 0; t < totalPointsPerCircle; t++){
 		repeatPoint = (*tubeVertices)[t];
 		tubeVertices->push_back(repeatPoint);
 	}
@@ -234,21 +178,14 @@ int main() {
 		}
 
 		//texture coordinates
-		//for (int k = 0; k < tubeVertices->size(); k++)
-		//{
-			//fprintf(myFile, "vt %.6f %.6f\n", (*tubeVertices)[k].texCoord[0], (*tubeVertices)[k].texCoord[1]);
-		//}
-
-		//temp Tex for right now
-
 		int round = pathPointsForCircles->size() / GAPSPERONETEX;
 
 		float vTexInc = ((float)round) / (pathPointsForCircles->size() - 1.0);
 		for (int q = 0; q < pathPointsForCircles->size(); q++)
 		{
-			for (int r = 0; r < circleVec->size(); r++)
+			for (int r = 0; r < totalPointsPerCircle; r++)
 			{
-				fprintf(myFile, "vt %.6f %.6f\n", (*tubeVertices)[q*circleVec->size() + r].texCoord[0], vTexInc*q);
+				fprintf(myFile, "vt %.6f %.6f\n", (*tubeVertices)[q*totalPointsPerCircle + r].texCoord[0], vTexInc*q);
 			}
 		}
 
@@ -258,7 +195,7 @@ int main() {
 			fprintf(myFile, "vn %.6f %.6f %.6f\n", (*tubeVertices)[l].normal[0], (*tubeVertices)[l].normal[1], (*tubeVertices)[l].normal[2]);
 		}
 
-		int jump = circleVec->size();
+		int jump = totalPointsPerCircle;
 		int count = 1;
 		int loopInc;
 		//faces
@@ -291,7 +228,6 @@ int main() {
 	delete finishedPathPoints;
 	delete pathPointsForCircles;
 	delete path;
-	delete circleVec;
 	delete tubeVertices;
 
 	return 0;
