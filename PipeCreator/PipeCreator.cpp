@@ -53,14 +53,16 @@ void circleVerts(int approx, float radius, vector<Vector4>* storeVec)
 	storeVec->push_back(Vector4(firstX, firstY, 0.0, 1.0));
 }
 
-void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoints, vector<Vertex>* finalPoints)
+void createTubeCircle(Vector4 current, Vector4 next, Vector4 radiusTangent, vector<Vector4>* circlePoints, vector<Vertex>* finalPoints)
 {
 	Vector4 circleNormal(0.0, 0.0, -1.0);
+	Vector4 defaultRadiusTan(1.0, 0.0, 0.0);
 	float cosine;
 	float sine;
 	float t;
 	Vector4 rotationAxis;
 	Matrix4 rotationMat;
+	Matrix4 tanRotationMat;
 	Matrix4 translationMat;
 	//float fillArray[4][4];
 
@@ -108,6 +110,8 @@ void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoin
 	Vector4 subtract;
 	Vertex resVertex;
 
+	Vector4 rotAxis;
+
 	int round = RADIUS / 15;
 	if (round < 1.0)
 	{
@@ -134,9 +138,18 @@ void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoin
 		resVertex.texCoord[0] = (float)i * texInc;
 		resVertex.texCoord[1] = 0.0f;
 
-		resVertex.tangent[0] = normal.x();
-		resVertex.tangent[1] = normal.y();
-		resVertex.tangent[2] = normal.z();
+		subtract.cross(normal);
+		rotAxis = subtract;
+		rotAxis.normalize();
+
+		float rotTanAngle = acos(defaultRadiusTan.dot(radiusTangent));
+
+		tanRotationMat = Matrix4::rotate(rotAxis, rotTanAngle);
+		Vector4 finalTan = tanRotationMat * normal;
+
+		resVertex.tangent[0] = finalTan.x();
+		resVertex.tangent[1] = finalTan.y();
+		resVertex.tangent[2] = finalTan.z();
 
 		finalPoints->push_back(resVertex);
 	}
@@ -175,7 +188,7 @@ int main() {
 	trackPointsRadii->push_back(radius);
 
 	point.set(2000.0f, 0.0f, -2000.0f, 0.5f);
-	radius = 80.0;
+	radius = 200.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
@@ -185,22 +198,22 @@ int main() {
 	trackPointsRadii->push_back(radius);
 
 	point.set(6000.0f, 2000.0f, -3000.0f, 0.5f);
-	radius = 80.0;
+	radius = 20.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
 	point.set(7000.0f, -2000.0f, 0.0f, 0.5f);
-	radius = 60.0;
+	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
 	point.set(5000.0f, 0.0f, 2000.0f, 0.5f);
-	radius = 70.0;
+	radius = 200.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
 	point.set(3000.0f, 0.0f, 3000.0f, 0.5f);
-	radius = 100.0;
+	radius = 50.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
@@ -272,7 +285,7 @@ int main() {
 
 
 	//create obj file from points
-	vector<Vector4>* circleVec;
+	vector<Vector4>* circleVec = new vector<Vector4>();
 
 	vector<Vertex>* tubeVertices = new vector<Vertex>();
 
@@ -287,7 +300,7 @@ int main() {
 		{
 			test = 3;
 		}
-		createTubeCircle((*pathPointsForCircles)[i].point, (*finishedPathPointsWithRad)[i*PATHPOINTSPERGAP + 1].point, circleVec, tubeVertices);
+		createTubeCircle((*pathPointsForCircles)[i].point, (*finishedPathPointsWithRad)[i*PATHPOINTSPERGAP + 1].point, (*pathPointsForCircles)[i].radiusTangent, circleVec, tubeVertices);
 		//Might cause issues when dividePointsPerGap 
 	}
 
@@ -300,7 +313,7 @@ int main() {
 
 	FILE * myFile;
 	
-	errno_t errorCode = fopen_s(&myFile, "track.trk", "w");
+	errno_t errorCode = fopen_s(&myFile, "testTrack.trk", "w");
 	if (errorCode == 0)
 	{
 		//vertices
@@ -373,13 +386,13 @@ int main() {
 
 	FILE * pathFile;
 
-	errno_t errorCodePath = fopen_s(&pathFile, "track.path", "w");
+	errno_t errorCodePath = fopen_s(&pathFile, "testTrack.path", "w");
 	if (errorCodePath == 0)
 	{
 		//vertices   the -1 is to get rid of the original start point
-		for (int j = 0; j < finishedPathPoints->size() -1; j++)
+		for (int j = 0; j < finishedPathPointsWithRad->size() -1; j++)
 		{
-			fprintf(pathFile, "v %.6f %.6f %.6f\n", (*finishedPathPoints)[j].x(), (*finishedPathPoints)[j].y(), -1.0 * (*finishedPathPoints)[j].z());
+			fprintf(pathFile, "v %.6f %.6f %.6f %.6f\n", (*finishedPathPointsWithRad)[j].point.x(), (*finishedPathPointsWithRad)[j].point.y(), -1.0 * (*finishedPathPointsWithRad)[j].point.z(), (*finishedPathPointsWithRad)[j].radius);
 		}
 
 		fclose(pathFile);
@@ -389,7 +402,8 @@ int main() {
 
 
 	delete startTrackPoints;
-	delete finishedPathPoints;
+	delete finishedPathPointsNoRad;
+	delete finishedPathPointsWithRad;
 	delete pathPointsForCircles;
 	delete path;
 	delete circleVec;

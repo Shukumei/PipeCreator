@@ -128,6 +128,7 @@ void RadiusBezierPath::GetDrawingPoints(vector<radiusPoint>* drawingPoints)
 	drawingPoints->clear();
 
 	int segmentsForCurve = 10;
+	int segmentInc = 0;
 
 	for (int i = 0; i < controlPoints->size() - 3; i += 3)
 	{
@@ -136,17 +137,18 @@ void RadiusBezierPath::GetDrawingPoints(vector<radiusPoint>* drawingPoints)
 		radiusPoint p2 = (*controlPoints)[i + 2];
 		radiusPoint p3 = (*controlPoints)[i + 3];
 
+		segmentsForCurve = (*segmentForCurveVec)[segmentInc];
+		segmentInc++;
+
 		if (i == 0) //only do this for the first end point. When i != 0, this coincides with the end point of the previous segment,
 		{
-			drawingPoints->push_back(CalculateBezierPoint(0, p0, p1, p2, p3));
+			drawingPoints->push_back(CalculateBezierPoint(0, p0, p1, p2, p3, segmentsForCurve));
 		}
-
-		segmentsForCurve = (*segmentForCurveVec)[i];
 
 		for (int j = 1; j <= segmentsForCurve; j++)
 		{
 			float t = j / (float)segmentsForCurve;
-			drawingPoints->push_back(CalculateBezierPoint(t, p0, p1, p2, p3));
+			drawingPoints->push_back(CalculateBezierPoint(t, p0, p1, p2, p3, segmentsForCurve));
 		}
 	}
 }
