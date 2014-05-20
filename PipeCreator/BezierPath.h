@@ -32,5 +32,5 @@ using namespace std;
 
 		vector<Vector4>* GetControlPoints();
 		void GetDrawingPoints0(vector<Vector4>*);
-		void GetDrawingPoints1(vector<Vector4>*);
+		void GetDrawingPoints1(vector<Vector4>*, vector<int>*);
 	};

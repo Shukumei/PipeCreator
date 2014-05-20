@@ -67,10 +67,12 @@
     <ClCompile Include="BezierPath.cpp" />
     <ClCompile Include="Matrix4.cpp" />
     <ClCompile Include="PipeCreator.cpp" />
+    <ClCompile Include="RadiusBezierPath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BezierPath.h" />
     <ClInclude Include="Matrix4.h" />
+    <ClInclude Include="RadiusBezierPath.h" />
     <ClInclude Include="Vector4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,4 +1,5 @@
 #include "BezierPath.h"
+#include "RadiusBezierPath.h"
 #include "Matrix4.h"
 
 #include <iostream>
@@ -19,6 +20,13 @@ struct Vertex {
 	float point[3];
 	float texCoord[2];
 	float normal[3];
+	float tangent[3];
+};
+
+struct VecPlusRad {
+	Vector4 point;
+	float radius;
+	Vector4 radiusTangent;
 };
 
 void circleVerts(int approx, float radius, vector<Vector4>* storeVec)
@@ -126,64 +134,122 @@ void createTubeCircle(Vector4 current, Vector4 next, vector<Vector4>* circlePoin
 		resVertex.texCoord[0] = (float)i * texInc;
 		resVertex.texCoord[1] = 0.0f;
 
+		resVertex.tangent[0] = normal.x();
+		resVertex.tangent[1] = normal.y();
+		resVertex.tangent[2] = normal.z();
+
 		finalPoints->push_back(resVertex);
 	}
 }
 
 void quadToTriangle(FILE* myFile, int v0Index, int v1Index, int v2Index, int v3Index){
 
-	fprintf(myFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", v0Index, v0Index, v0Index, v1Index, v1Index, v1Index, v2Index, v2Index, v2Index);
+	fprintf(myFile, "f %d/%d/%d/%d %d/%d/%d/%d %d/%d/%d/%d\n", v0Index, v0Index, v0Index, v0Index, v1Index, v1Index, v1Index, v1Index, v2Index, v2Index, v2Index, v2Index);
 
-	fprintf(myFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", v0Index, v0Index, v0Index, v2Index, v2Index, v2Index, v3Index, v3Index, v3Index);
+	fprintf(myFile, "f %d/%d/%d/%d %d/%d/%d/%d %d/%d/%d/%d\n", v0Index, v0Index, v0Index, v0Index, v2Index, v2Index, v2Index, v2Index, v3Index, v3Index, v3Index, v3Index);
 }
 
 
 int main() {
 
 	vector<Vector4>* startTrackPoints = new vector<Vector4>();
-	vector<Vector4>* finishedPathPoints = new vector<Vector4>();
-	vector<Vector4>* pathPointsForCircles = new vector<Vector4>();
+	vector<float>* trackPointsRadii = new vector<float>();
+	vector<Vector4>* finishedPathPointsNoRad = new vector<Vector4>();
+	vector<radiusPoint>* finishedRadiusPathPoints = new vector<radiusPoint>();
+
+	vector<VecPlusRad>* finishedPathPointsWithRad = new vector<VecPlusRad>();
+	vector<VecPlusRad>* pathPointsForCircles = new vector<VecPlusRad>();
+
+	vector<int>* numSegmentsVec = new vector<int>();
 
 	//add points for track
 
 	Vector4 point;
+	float radius;
 
 	//w value is scale
 
 	point.set(0.0f, 0.0f, 0.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(2000.0f, 0.0f, -2000.0f, 0.5f);
+	radius = 80.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(4000.0f, 0.0f, -4000.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(6000.0f, 2000.0f, -3000.0f, 0.5f);
+	radius = 80.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(7000.0f, -2000.0f, 0.0f, 0.5f);
+	radius = 60.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(5000.0f, 0.0f, 2000.0f, 0.5f);
+	radius = 70.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(3000.0f, 0.0f, 3000.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(-1000.0f, 0.0f, 1000.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 	point.set(0.0f, 0.0f, 0.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
 
 
 	BezierPath* path = new BezierPath(startTrackPoints);
-	path->GetDrawingPoints1(finishedPathPoints);
+	numSegmentsVec->push_back(0); //first radii curves value has 0 for x
+	path->GetDrawingPoints1(finishedPathPointsNoRad, numSegmentsVec);
+
+
+	vector<radiusPoint>* radiusTrackPoints = new vector<radiusPoint>();
+
+	radiusPoint rPoint;
+
+	float xPos = 0;
+	for (int i = 0; i < startTrackPoints->size(); i++)
+	{
+		xPos += (*numSegmentsVec)[i];
+		rPoint.point.set(xPos, (*trackPointsRadii)[i], 0.0, 0.5);
+		radiusTrackPoints->push_back(rPoint);
+	}
+
+	RadiusBezierPath* radiusPath = new RadiusBezierPath(radiusTrackPoints, numSegmentsVec);
+	radiusPath->GetDrawingPoints(finishedRadiusPathPoints);
+
+	VecPlusRad input;
+
+	for (int k = 0; k < finishedPathPointsNoRad->size(); k++)
+	{
+		input.point = (*finishedPathPointsNoRad)[k];
+		input.radius = (*finishedRadiusPathPoints)[k].point.y();
+		input.radiusTangent = (*finishedRadiusPathPoints)[k].tangent;
+
+		finishedPathPointsWithRad->push_back(input);
+	}
+
 
 	// Reduce number of circle points
 	bool divideByPointsPerGap = true;
-	int totalPath = finishedPathPoints->size();
+	int totalPath = finishedPathPointsWithRad->size();
 	int modPath = totalPath % PATHPOINTSPERGAP;
 	if (modPath != 0)
 	{
@@ -193,11 +259,11 @@ int main() {
 	int gapPoints = totalPath / PATHPOINTSPERGAP;
 
 	for (int g = 0; g < gapPoints; g++) {
-		pathPointsForCircles->push_back((*finishedPathPoints)[g*PATHPOINTSPERGAP]);
+		pathPointsForCircles->push_back((*finishedPathPointsWithRad)[g*PATHPOINTSPERGAP]);
 	}
 
 	if (!divideByPointsPerGap) {
-		pathPointsForCircles->push_back((*finishedPathPoints)[finishedPathPoints->size() - 1]);
+		pathPointsForCircles->push_back((*finishedPathPointsWithRad)[finishedPathPointsWithRad->size() - 1]);
 	}
 
 
@@ -206,15 +272,25 @@ int main() {
 
 
 	//create obj file from points
-	vector<Vector4>* circleVec = new vector<Vector4>();
-	circleVerts(NUMPOINTSINCIRCLE, RADIUS, circleVec);
+	vector<Vector4>* circleVec;
 
 	vector<Vertex>* tubeVertices = new vector<Vertex>();
 
+	int test = 2;
+
 	for (int i = 0; i < pathPointsForCircles->size() - 1; i++)
 	{
-		createTubeCircle((*pathPointsForCircles)[i], (*pathPointsForCircles)[i + 1], circleVec, tubeVertices);
+		circleVec = new vector<Vector4>();
+		circleVerts(NUMPOINTSINCIRCLE, (*pathPointsForCircles)[i].radius, circleVec);
+
+		if (i == 125)
+		{
+			test = 3;
+		}
+		createTubeCircle((*pathPointsForCircles)[i].point, (*finishedPathPointsWithRad)[i*PATHPOINTSPERGAP + 1].point, circleVec, tubeVertices);
+		//Might cause issues when dividePointsPerGap 
 	}
+
 
 	Vertex repeatPoint;
 	for (int t = 0; t < circleVec->size(); t++){
@@ -224,7 +300,7 @@ int main() {
 
 	FILE * myFile;
 	
-	errno_t errorCode = fopen_s(&myFile, "example.obj", "w");
+	errno_t errorCode = fopen_s(&myFile, "track.trk", "w");
 	if (errorCode == 0)
 	{
 		//vertices
@@ -258,6 +334,13 @@ int main() {
 			fprintf(myFile, "vn %.6f %.6f %.6f\n", (*tubeVertices)[l].normal[0], (*tubeVertices)[l].normal[1], (*tubeVertices)[l].normal[2]);
 		}
 
+		//tangents
+		for (int j = 0; j < tubeVertices->size(); j++)
+		{
+			fprintf(myFile, "vx %.6f %.6f %.6f\n", (*tubeVertices)[j].tangent[0], (*tubeVertices)[j].tangent[1], (*tubeVertices)[j].tangent[2]);
+		}
+
+
 		int jump = circleVec->size();
 		int count = 1;
 		int loopInc;
@@ -286,6 +369,24 @@ int main() {
 		fclose(myFile);
 	}
 	else cout << "Unable to open file";
+
+
+	FILE * pathFile;
+
+	errno_t errorCodePath = fopen_s(&pathFile, "track.path", "w");
+	if (errorCodePath == 0)
+	{
+		//vertices   the -1 is to get rid of the original start point
+		for (int j = 0; j < finishedPathPoints->size() -1; j++)
+		{
+			fprintf(pathFile, "v %.6f %.6f %.6f\n", (*finishedPathPoints)[j].x(), (*finishedPathPoints)[j].y(), -1.0 * (*finishedPathPoints)[j].z());
+		}
+
+		fclose(pathFile);
+	}
+	else cout << "Unable to open file";
+
+
 
 	delete startTrackPoints;
 	delete finishedPathPoints;

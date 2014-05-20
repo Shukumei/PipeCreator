@@ -166,7 +166,7 @@ of points per curve.
 
 This is a slightly different inplementation from the one above.
 */
-void BezierPath::GetDrawingPoints1(vector<Vector4>* drawingPoints)
+void BezierPath::GetDrawingPoints1(vector<Vector4>* drawingPoints, vector<int>* sectionLengthsVec)
 {
 	drawingPoints->clear();
 
@@ -187,6 +187,8 @@ void BezierPath::GetDrawingPoints1(vector<Vector4>* drawingPoints)
 		double distance = bezier_length(p0, p1, p2, p3);
 
 		segmentsForCurve = (int)(distance / DISTANCE_BETWEEN_POINTS);
+
+		sectionLengthsVec->push_back(segmentsForCurve);
 
 		for (int j = 1; j <= segmentsForCurve; j++)
 		{
