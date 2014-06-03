@@ -187,37 +187,122 @@ int main() {
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
-	point.set(2000.0f, 0.0f, -2000.0f, 0.5f);
-	radius = 200.0;
-	startTrackPoints->push_back(point);
-	trackPointsRadii->push_back(radius);
-
-	point.set(4000.0f, 0.0f, -4000.0f, 0.5f);
+	point.set(0.0f, 0.0f, -1000.0f, 0.5f);
 	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
-	point.set(6000.0f, 2000.0f, -3000.0f, 0.5f);
-	radius = 20.0;
-	startTrackPoints->push_back(point);
-	trackPointsRadii->push_back(radius);
-
-	point.set(7000.0f, -2000.0f, 0.0f, 0.5f);
+	point.set(-1000.0f, 0.0f, -2500.0f, 0.5f);
 	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
-	point.set(5000.0f, 0.0f, 2000.0f, 0.5f);
-	radius = 200.0;
+	point.set(-2000.0f, 0.0f, -3000.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
-	point.set(3000.0f, 0.0f, 3000.0f, 0.5f);
-	radius = 50.0;
+	point.set(-4000.0f, 0.0f, -4000.0f, 0.5f);
+	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
 
-	point.set(-1000.0f, 0.0f, 1000.0f, 0.5f);
+	point.set(-2000.0f, 0.0f, -5000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(1000.0f, -1000.0f, -5000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(3000.0f, -1000.0f, -5000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(4000.0f, -0.0f, -6500.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(3500.0f, 1000.0f, -8000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(2500.0f, -0.0f, -9500.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(3500.0f, -1000.0f, -9500.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(6000.0f, 0.0f, -4000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(8000.0f, 0.0f, -3000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(7000.0f, 0.0f, -2000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(9000.0f, 0.0f, 0.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(7000.0f, 0.0f, 2000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(9000.0f, 1000.0f, 4000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(7000.0f, -500.0f, 5000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(7000.0f, -1500.0f, 3000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(7000.0f, -3000.0f, 6000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(5000.0f, -2500.0f, 4000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(3000.0f, 2000.0f, 3000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(1000.0f, -500.0f, 2000.0f, 0.5f);
+	radius = 100.0;
+	startTrackPoints->push_back(point);
+	trackPointsRadii->push_back(radius);
+
+	point.set(0.0f, 0.0f, 1000.0f, 0.5f);
 	radius = 100.0;
 	startTrackPoints->push_back(point);
 	trackPointsRadii->push_back(radius);
@@ -313,7 +398,7 @@ int main() {
 
 	FILE * myFile;
 	
-	errno_t errorCode = fopen_s(&myFile, "testTrack.trk", "w");
+	errno_t errorCode = fopen_s(&myFile, "track.trk", "w");
 	if (errorCode == 0)
 	{
 		//vertices
@@ -386,7 +471,7 @@ int main() {
 
 	FILE * pathFile;
 
-	errno_t errorCodePath = fopen_s(&pathFile, "testTrack.path", "w");
+	errno_t errorCodePath = fopen_s(&pathFile, "track.path", "w");
 	if (errorCodePath == 0)
 	{
 		//vertices   the -1 is to get rid of the original start point
